@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Google Sheet Record Creator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    form { max-width: 400px; margin: auto; }
+    input, textarea, button {
+      width: 100%; padding: 10px; margin: 8px 0;
+      border: 1px solid #ccc; border-radius: 4px;
+    }
+    button { background: #28a745; color: white; border: none; cursor: pointer; }
+    button:hover { background: #218838; }
+  </style>
+</head>
+<body>
+  <h2>Create Record in Google Sheet</h2>
+  <form id="recordForm">
+    <input type="text" id="name" placeholder="Enter Name" required>
+    <input type="email" id="email" placeholder="Enter Email" required>
+    <textarea id="message" placeholder="Enter Message" required></textarea>
+    <button type="submit">Submit</button>
+  </form>
+
+  <p id="status"></p>
+
+  
+ <script>
+      const scriptURL = "https://script.google.com/macros/s/AKfycbzpZpN90HzF9bbPNKlscz7lCbdYDJAhMeRvl_2tFLKGQexD3UXZeFGbpFG7yQdKTWTHUA/exec"; // Replace with deployed Google Script URL
+
+
+  document.getElementById("recordForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const data = {
+      name: document.getElementById("name").value,
+      email: document.getElementById("email").value,
+      message: document.getElementById("message").value
+    };
+
+    fetch(scriptURL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(res => {
+      if (res.result === "success") {
+        document.getElementById("status").innerText = "✅ Record added!";
+        document.getElementById("recordForm").reset();
+      } else {
+        document.getElementById("status").innerText = "❌ Error: " + res.message;
+      }
+    })
+    .catch(err => {
+      document.getElementById("status").innerText = "❌ Network error!";
+      console.error("Fetch error:", err);
+    });
+  });
+</script>
+
+</body>
+</html>
