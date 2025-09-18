@@ -25,44 +25,48 @@
 
   <p id="status"></p>
 
-  
- <script>
-      const scriptURL = "https://script.google.com/macros/s/AKfycbzpZpN90HzF9bbPNKlscz7lCbdYDJAhMeRvl_2tFLKGQexD3UXZeFGbpFG7yQdKTWTHUA/exec"; // Replace with deployed Google Script URL
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzpZpN90HzF9bbPNKlscz7lCbdYDJAhMeRvl_2tFLKGQexD3UXZeFGbpFG7yQdKTWTHUA/exec"; 
+    // 👆 Your Web App URL
 
+    document.getElementById("recordForm").addEventListener("submit", e => {
+      e.preventDefault();
 
-  document.getElementById("recordForm").addEventListener("submit", e => {
-    e.preventDefault();
-    const data = {
-      name: document.getElementById("name").value,
-      email: document.getElementById("email").value,
-      message: document.getElementById("message").value
-    };
+      const data = {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        message: document.getElementById("message").value
+      };
 
-     fetch(scriptURL, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(data)
-})
-.then(async res => {
-  if (!res.ok) {
-    throw new Error(`HTTP error! Status: ${res.status}`);
-  }
-  return res.json();
-})
-.then(res => {
-  if (res.result === "success") {
-    document.getElementById("status").innerText = "✅ Record added!";
-    document.getElementById("recordForm").reset();
-  } else {
-    document.getElementById("status").innerText = "❌ Server error: " + res.message;
-  }
-})
-.catch(err => {
-  document.getElementById("status").innerText = "❌ Network error: " + err;
-  console.error("Fetch error:", err);
-});
+      document.getElementById("status").innerText = "⏳ Submitting...";
 
-</script>
-
+      fetch(scriptURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
+      .then(async res => {
+        const text = await res.text(); // read raw response
+        console.log("Raw response:", text);
+        try {
+          return JSON.parse(text); // try parsing JSON
+        } catch {
+          throw new Error("Invalid JSON from server: " + text);
+        }
+      })
+      .then(res => {
+        if (res.result === "success") {
+          document.getElementById("status").innerText = "✅ Record added!";
+          document.getElementById("recordForm").reset();
+        } else {
+          document.getElementById("status").innerText = "❌ Server error: " + res.message;
+        }
+      })
+      .catch(err => {
+        document.getElementById("status").innerText = "❌ Network/Parsing error: " + err.message;
+        console.error("Fetch error:", err);
+      });
+    });
+  </script>
 </body>
 </html>
