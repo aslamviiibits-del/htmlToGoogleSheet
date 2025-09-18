@@ -17,9 +17,9 @@
 <body>
   <h2>Create Record in Google Sheet</h2>
   <form id="recordForm">
-    <input type="text" id="name" placeholder="Enter Name" required>
-    <input type="email" id="email" placeholder="Enter Email" required>
-    <textarea id="message" placeholder="Enter Message" required></textarea>
+    <input type="text" name="name" id="name" placeholder="Enter Name" required>
+    <input type="email" name="email" id="email" placeholder="Enter Email" required>
+    <textarea name="message" id="message" placeholder="Enter Message" required></textarea>
     <button type="submit">Submit</button>
   </form>
 
@@ -27,45 +27,43 @@
 
   <script>
     const scriptURL = "https://script.google.com/macros/s/AKfycbzpZpN90HzF9bbPNKlscz7lCbdYDJAhMeRvl_2tFLKGQexD3UXZeFGbpFG7yQdKTWTHUA/exec"; 
-    // 👆 Your Web App URL
+    // 👆 Replace with your Web App URL
 
-    document.getElementById("recordForm").addEventListener("submit", e => {
+    const form = document.getElementById("recordForm");
+    const status = document.getElementById("status");
+
+    form.addEventListener("submit", e => {
       e.preventDefault();
+      status.innerText = "⏳ Submitting...";
 
-      const data = {
-        name: document.getElementById("name").value,
-        email: document.getElementById("email").value,
-        message: document.getElementById("message").value
-      };
+      const formData = new FormData(form);
 
-      document.getElementById("status").innerText = "⏳ Submitting...";
-
-      fetch(scriptURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      })
-      .then(async res => {
-        const text = await res.text(); // read raw response
-        console.log("Raw response:", text);
-        try {
-          return JSON.parse(text); // try parsing JSON
-        } catch {
-          throw new Error("Invalid JSON from server: " + text);
-        }
-      })
-      .then(res => {
-        if (res.result === "success") {
-          document.getElementById("status").innerText = "✅ Record added!";
-          document.getElementById("recordForm").reset();
-        } else {
-          document.getElementById("status").innerText = "❌ Server error: " + res.message;
-        }
-      })
-      .catch(err => {
-        document.getElementById("status").innerText = "❌ Network/Parsing error: " + err.message;
-        console.error("Fetch error:", err);
-      });
+      fetch(scriptURL, { method: "POST", body: formData })
+        .then(response => response.text())
+        .then(text => {
+          console.log("Raw response:", text);
+          try {
+            const res = JSON.parse(text);
+            if (res.result === "success") {
+              status.innerText = "✅ Record added!";
+              form.reset();
+            } else {
+              status.innerText = "❌ Server error: " + res.message;
+            }
+          } catch {
+            // If Apps Script just returns "Success"
+            if (text.includes("Success")) {
+              status.innerText = "✅ Record added!";
+              form.reset();
+            } else {
+              status.innerText = "⚠️ Unexpected response: " + text;
+            }
+          }
+        })
+        .catch(err => {
+          status.innerText = "❌ Network error: " + err.message;
+          console.error("Fetch error:", err);
+        });
     });
   </script>
 </body>
