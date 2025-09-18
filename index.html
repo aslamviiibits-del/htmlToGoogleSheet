@@ -38,25 +38,30 @@
       message: document.getElementById("message").value
     };
 
-    fetch(scriptURL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    })
-    .then(res => res.json())
-    .then(res => {
-      if (res.result === "success") {
-        document.getElementById("status").innerText = "✅ Record added!";
-        document.getElementById("recordForm").reset();
-      } else {
-        document.getElementById("status").innerText = "❌ Error: " + res.message;
-      }
-    })
-    .catch(err => {
-      document.getElementById("status").innerText = "❌ Network error!";
-      console.error("Fetch error:", err);
-    });
-  });
+     fetch(scriptURL, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(data)
+})
+.then(async res => {
+  if (!res.ok) {
+    throw new Error(`HTTP error! Status: ${res.status}`);
+  }
+  return res.json();
+})
+.then(res => {
+  if (res.result === "success") {
+    document.getElementById("status").innerText = "✅ Record added!";
+    document.getElementById("recordForm").reset();
+  } else {
+    document.getElementById("status").innerText = "❌ Server error: " + res.message;
+  }
+})
+.catch(err => {
+  document.getElementById("status").innerText = "❌ Network error: " + err;
+  console.error("Fetch error:", err);
+});
+
 </script>
 
 </body>
